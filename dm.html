@@ -1,0 +1,456 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>京东汪贝/plus积分直链工具</title>
+    <!-- 二维码核心库 -->
+    <script src="https://cdn.bootcdn.net/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+        }
+        body {
+            background-color: #f5f7fa;
+            padding: 0.8rem;
+            min-height: 100vh;
+        }
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            background: #fff;
+            border-radius: 16px;
+            padding: 1.5rem 1.2rem;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.06);
+        }
+        h1 {
+            font-size: 1.5rem;
+            color: #2d3748;
+            margin-bottom: 1.5rem;
+            text-align: center;
+            font-weight: 600;
+        }
+        .input-group {
+            margin-bottom: 1.5rem;
+        }
+        label {
+            display: block;
+            color: #4a5568;
+            margin-bottom: 0.6rem;
+            font-size: 0.95rem;
+            font-weight: 500;
+        }
+        #sourceUrl {
+            width: 100%;
+            padding: 1rem;
+            border: 1px solid #e2e8f0;
+            border-radius: 10px;
+            font-size: 0.9rem;
+            color: #2d3748;
+            transition: all 0.3s;
+            background: #fafafa;
+            outline: none;
+        }
+        #sourceUrl:focus {
+            border-color: #e1251b;
+            box-shadow: 0 0 0 3px rgba(225,37,27,0.1);
+        }
+        .btn-group {
+            display: flex;
+            gap: 0.8rem;
+            margin-top: 0.8rem;
+        }
+        button {
+            flex: 1;
+            padding: 1rem;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 0.95rem;
+            font-weight: 500;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .generate-btn {
+            background: #e1251b;
+            color: #fff;
+        }
+        .generate-btn:hover {
+            background: #c81623;
+            transform: translateY(-1px);
+        }
+        .clear-btn {
+            background: #f8f9fa;
+            color: #4a5568;
+            border: 1px solid #e2e8f0;
+        }
+        .clear-btn:hover {
+            background: #f1f3f5;
+            transform: translateY(-1px);
+        }
+        .result {
+            margin-top: 1.5rem;
+            padding: 1.2rem;
+            border: 1px solid #e2e8f0;
+            border-radius: 10px;
+            background: #fafafa;
+            display: none;
+        }
+        .result h3 {
+            font-size: 1rem;
+            color: #2d3748;
+            margin-bottom: 1rem;
+            font-weight: 600;
+        }
+        #settlementUrl {
+            display: block;
+            width: 100%;
+            padding: 0.9rem;
+            background: #fff;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            color: #0066cc;
+            text-decoration: none;
+            word-break: break-all;
+            font-size: 0.85rem;
+            margin-bottom: 1rem;
+            white-space: pre-wrap;
+        }
+        .result-btn-group {
+            display: flex;
+            gap: 0.8rem;
+            margin-bottom: 1.5rem;
+        }
+        .copy-btn, .qrcode-btn {
+            flex: 1;
+            padding: 0.9rem;
+        }
+        .copy-btn {
+            background: #0066cc;
+            color: #fff;
+        }
+        .copy-btn:hover {
+            background: #0052a3;
+        }
+        .qrcode-btn {
+            background: #28a745;
+            color: #fff;
+        }
+        .qrcode-btn:hover {
+            background: #218838;
+        }
+        .tip {
+            color: #666;
+            font-size: 0.85rem;
+            margin-top: 0.6rem;
+            text-align: center;
+        }
+        #copyTip {
+            color: #28a745;
+            font-weight: 500;
+            display: none;
+        }
+        /* 二维码容器：彻底解决居中问题 */
+        .qrcode-container {
+            margin-top: 0.5rem;
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 0.5rem 0;
+        }
+        .qrcode-container h4 {
+            font-size: 0.95rem;
+            color: #4a5568;
+            margin-bottom: 0.8rem;
+            font-weight: 500;
+            text-align: center;
+        }
+        /* 二维码外层盒子：固定尺寸+居中，解决内部二维码偏移 */
+        #qrcode {
+            width: 180px !important;
+            height: 180px !important;
+            padding: 8px;
+            background: #fff;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            margin: 0 auto;
+            /* 强制子元素居中 */
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        /* 修复qrcodejs生成的canvas/img居中 */
+        #qrcode canvas, #qrcode img {
+            width: 100% !important;
+            height: 100% !important;
+            object-fit: contain;
+        }
+        .qrcode-tip {
+            margin-top: 0.8rem;
+            font-size: 0.8rem;
+            color: #666;
+            text-align: center;
+        }
+        /* 二维码放大弹窗 */
+        .qrcode-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.75);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+            padding: 2rem 1rem;
+        }
+        .modal-content {
+            background: #fff;
+            padding: 1.5rem;
+            border-radius: 12px;
+            text-align: center;
+            max-width: 320px;
+            width: 100%;
+        }
+        #largeQrcode {
+            width: 260px !important;
+            height: 260px !important;
+            margin: 0 auto;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        #largeQrcode canvas, #largeQrcode img {
+            width: 100% !important;
+            height: 100% !important;
+            object-fit: contain;
+        }
+        .close-modal {
+            margin-top: 1.2rem;
+            padding: 0.8rem 2rem;
+            background: #e1251b;
+            color: #fff;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.9rem;
+        }
+        .close-modal:hover {
+            background: #c81623;
+        }
+
+        /* 手机端专属适配（全屏幕兼容） */
+        @media (max-width: 480px) {
+            body {
+                padding: 0.5rem;
+            }
+            .container {
+                padding: 1.2rem 1rem;
+                border-radius: 12px;
+            }
+            h1 {
+                font-size: 1.3rem;
+                margin-bottom: 1.2rem;
+            }
+            .btn-group, .result-btn-group {
+                flex-direction: column;
+                gap: 0.6rem;
+            }
+            button {
+                padding: 0.95rem;
+                font-size: 0.9rem;
+            }
+            #sourceUrl {
+                padding: 0.95rem;
+                font-size: 0.85rem;
+            }
+            .result {
+                padding: 1rem;
+                margin-top: 1.2rem;
+            }
+            #settlementUrl {
+                padding: 0.8rem;
+                font-size: 0.8rem;
+            }
+            /* 手机端二维码尺寸优化（扫码更舒适） */
+            #qrcode {
+                width: 160px !important;
+                height: 160px !important;
+            }
+            #largeQrcode {
+                width: 240px !important;
+                height: 240px !important;
+            }
+            .modal-content {
+                padding: 1.2rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>京东汪贝/plus积分直链工具 </h1>
+        
+        <div class="input-group">
+            <label>输入原商品链接：</label>
+            <input 
+                type="text" 
+                id="sourceUrl" 
+                placeholder="https://m-sep.jd.com/ProductDetail?businessType=xxx&activityId=xxx&skuId=xxx..."
+            >
+            <div class="btn-group">
+                <button class="generate-btn" onclick="generateSettlementUrl()">生成 Settlement 链接</button>
+                <button class="clear-btn" onclick="clearInput()">清空链接</button>
+            </div>
+        </div>
+
+        <div class="result" id="resultContainer">
+            <h3>生成结果：</h3>
+            <a id="settlementUrl" target="_blank"></a>
+            <div class="result-btn-group">
+                <button class="copy-btn" onclick="copyResult()">一键复制链接</button>
+                <button class="qrcode-btn" onclick="generateQrcode()">生成二维码</button>
+            </div>
+            <div class="tip" id="copyTip">✅ 复制成功！</div>
+            
+            <!-- 二维码容器 -->
+            <div class="qrcode-container" id="qrcodeContainer">
+                <h4>链接二维码（扫码直达）</h4>
+                <div id="qrcode"></div>
+                <div class="qrcode-tip">点击二维码可放大查看</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 二维码放大弹窗 -->
+    <div class="qrcode-modal" id="qrcodeModal">
+        <div class="modal-content">
+            <div id="largeQrcode"></div>
+            <button class="close-modal" onclick="closeModal()">关闭</button>
+        </div>
+    </div>
+
+    <script>
+        let qrcodeInstance = null;
+        let largeQrcodeInstance = null;
+
+        // 生成目标结算链接
+        function generateSettlementUrl() {
+            const sourceUrl = document.getElementById('sourceUrl').value.trim();
+            if (!sourceUrl) {
+                alert('请输入有效的ProductDetail链接！');
+                return;
+            }
+            try {
+                const params = new URLSearchParams(sourceUrl.split('?')[1]);
+                const businessType = params.get('businessType');
+                const activityId = params.get('activityId');
+                const skuId = params.get('skuId');
+                // 验证必要参数
+                if (!businessType || !activityId || !skuId) {
+                    alert('链接缺少必要参数：businessType/activityId/skuId！');
+                    return;
+                }
+                // 拼接目标链接
+                const targetUrl = `https://m-sep.jd.com/Settlement?businessType=${businessType}&activityId=${activityId}&skuId=${skuId}&showhead=no`;
+                // 渲染结果
+                const resultBox = document.getElementById('resultContainer');
+                const urlLink = document.getElementById('settlementUrl');
+                urlLink.href = targetUrl;
+                urlLink.textContent = targetUrl;
+                resultBox.style.display = 'block';
+                document.getElementById('copyTip').style.display = 'none';
+                document.getElementById('qrcodeContainer').style.display = 'none';
+                // 销毁旧二维码
+                if (qrcodeInstance) qrcodeInstance.clear();
+                if (largeQrcodeInstance) largeQrcodeInstance.clear();
+            } catch (err) {
+                alert('链接格式错误，请检查后重新输入！');
+                console.error('解析错误：', err);
+            }
+        }
+
+        // 清空输入与结果
+        function clearInput() {
+            document.getElementById('sourceUrl').value = '';
+            document.getElementById('resultContainer').style.display = 'none';
+            document.getElementById('copyTip').style.display = 'none';
+            document.getElementById('qrcodeContainer').style.display = 'none';
+            // 销毁二维码实例
+            if (qrcodeInstance) qrcodeInstance.clear();
+            if (largeQrcodeInstance) largeQrcodeInstance.clear();
+            qrcodeInstance = null;
+            largeQrcodeInstance = null;
+        }
+
+        // 一键复制链接
+        function copyResult() {
+            const targetUrl = document.getElementById('settlementUrl').textContent;
+            navigator.clipboard.writeText(targetUrl).then(() => {
+                const tip = document.getElementById('copyTip');
+                tip.style.display = 'block';
+                setTimeout(() => tip.style.display = 'none', 2000);
+            }).catch(() => {
+                alert('复制失败，请手动选中复制！');
+            });
+        }
+
+        // 生成二维码（核心解决居中问题）
+        function generateQrcode() {
+            const targetUrl = document.getElementById('settlementUrl').textContent;
+            const qrBox = document.getElementById('qrcode');
+            const largeQrBox = document.getElementById('largeQrcode');
+            const qrContainer = document.getElementById('qrcodeContainer');
+            // 显示二维码容器
+            qrContainer.style.display = 'flex';
+            // 销毁旧实例避免重复渲染
+            if (qrcodeInstance) qrcodeInstance.clear();
+            if (largeQrcodeInstance) largeQrcodeInstance.clear();
+            // 生成普通二维码（与CSS尺寸一致）
+            qrcodeInstance = new QRCode(qrBox, {
+                text: targetUrl,
+                width: 160,
+                height: 160,
+                colorDark: '#000000',
+                colorLight: '#ffffff',
+                correctLevel: QRCode.CorrectLevel.H // 高容错率（扫码更快）
+            });
+            // 生成放大版二维码（与CSS尺寸一致）
+            largeQrcodeInstance = new QRCode(largeQrBox, {
+                text: targetUrl,
+                width: 240,
+                height: 240,
+                colorDark: '#000000',
+                colorLight: '#ffffff',
+                correctLevel: QRCode.CorrectLevel.H
+            });
+            // 绑定点击放大事件
+            qrBox.onclick = () => {
+                document.getElementById('qrcodeModal').style.display = 'flex';
+            };
+        }
+
+        // 关闭二维码弹窗
+        function closeModal() {
+            document.getElementById('qrcodeModal').style.display = 'none';
+        }
+
+        // 点击弹窗背景关闭
+        document.getElementById('qrcodeModal').onclick = (e) => {
+            if (e.target === e.currentTarget) closeModal();
+        };
+
+        // 回车生成链接（手机端便捷操作）
+        document.getElementById('sourceUrl').addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') generateSettlementUrl();
+        });
+    </script>
+</body>
+</html>
