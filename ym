@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>京东汪贝/plus积分直链工具</title>
+    <title>京东汪贝/plus积分付款直链工具</title>
     <!-- 二维码核心库 -->
     <script src="https://cdn.bootcdn.net/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     <style>
@@ -296,7 +296,7 @@
 </head>
 <body>
     <div class="container">
-        <h1>京东汪贝/plus积分直链工具 </h1>
+        <h1>京东汪贝/plus积分付款直链工具 </h1>
         
         <div class="input-group">
             <label>输入原商品链接：</label>
@@ -306,7 +306,7 @@
                 placeholder="https://m-sep.jd.com/ProductDetail?businessType=xxx&activityId=xxx&skuId=xxx..."
             >
             <div class="btn-group">
-                <button class="generate-btn" onclick="generateSettlementUrl()">生成 Settlement 链接</button>
+                <button class="generate-btn" onclick="generateSettlementUrl()">生成付款直达链接</button>
                 <button class="clear-btn" onclick="clearInput()">清空链接</button>
             </div>
         </div>
